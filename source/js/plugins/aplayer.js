@@ -43,11 +43,9 @@ const RightMenuAplayer = (() => {
       });
       APlayer.player.on('volumechange', function (e) {
         fn.onUpdateAPlayerVolume(e);
-        APlayer.status = 'volumechange';
       });
       APlayer.player.on('loadstart', function (e) {
         fn.updateTitle(e);
-        APlayer.status = 'loadstart';
       });
 
       // 监听音量手势
@@ -120,7 +118,6 @@ const RightMenuAplayer = (() => {
 
   // 播放/暂停
   fn.aplayerToggle = () => {
-    event.stopPropagation();
     fn.checkAPlayer();
     try {
       APlayer.player.toggle();
@@ -131,7 +128,6 @@ const RightMenuAplayer = (() => {
 
   // 上一曲
   fn.aplayerBackward = () => {
-    event.stopPropagation();
     fn.checkAPlayer();
     try {
       APlayer.player.skipBack();
@@ -143,7 +139,6 @@ const RightMenuAplayer = (() => {
 
   // 下一曲
   fn.aplayerForward = () => {
-    event.stopPropagation();
     fn.checkAPlayer();
     try {
       APlayer.player.skipForward();

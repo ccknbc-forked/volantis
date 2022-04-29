@@ -5,9 +5,10 @@
   volantis.dom = {}; // 页面Dom see: /source/js/app.js etc.
 
   volantis.GLOBAL_CONFIG ={
+    debug: <%- JSON.stringify(theme.debug) %>,
     cdn: <%- JSON.stringify(theme.cdn.map) %>,
     default: <%- JSON.stringify(theme.default) %>,
-    lastupdate: new Date('<%- new Date() %>'),
+    lastupdate: new Date(<%- theme.getStartTime %>),
     sidebar: {
       for_page: <%- JSON.stringify(theme.sidebar.for_page) %>,
       for_post: <%- JSON.stringify(theme.sidebar.for_post) %>,
@@ -34,7 +35,8 @@
         layout: <%- JSON.stringify(theme.rightmenu.layout) %>,
         music_alwaysShow: <%- JSON.stringify(theme.rightmenu.music.alwaysShow) %>,
         customPicUrl: <%- JSON.stringify(theme.rightmenu.customPicUrl) %>
-      }
+      },      
+      rightmenus: <%- JSON.stringify(theme.rightmenus) %>
     }
   }
 
@@ -179,12 +181,21 @@
     error: new RunItem(),
     send: new RunItem(),
   };
-  volantis.pjax = {
-    ...volantis.pjax,
+  volantis.pjax = Object.assign(volantis.pjax, {
     push: volantis.pjax.method.complete.push,
     error: volantis.pjax.method.error.push,
     send: volantis.pjax.method.send.push,
-  };
+  });
+  /******************** RightMenu ********************************/
+  // volantis.rightmenu.handle(callBack[,"callBackName"]) 外部菜单项控制
+  // 可在 volantis.mouseEvent 处获取右键事件
+  volantis.rightmenu = {};
+  volantis.rightmenu.method = {
+    handle: new RunItem(),
+  }
+  volantis.rightmenu = Object.assign(volantis.rightmenu, {
+    handle: volantis.rightmenu.method.handle.push,
+  });
   /********************  Dark Mode  ********************************/
   // /layout/_partial/scripts/darkmode.ejs
   // volantis.dark.mode 当前模式 dark or light
@@ -194,10 +205,9 @@
   volantis.dark.method = {
     toggle: new RunItem(),
   };
-  volantis.dark = {
-    ...volantis.dark,
+  volantis.dark = Object.assign(volantis.dark, {
     push: volantis.dark.method.toggle.push,
-  };
+  });
   /********************  Message  ********************************/
   // VolantisApp.message
   /********************  isMobile  ********************************/
@@ -243,7 +253,7 @@
         } else {
           script.onload = resolve
         }
-        script.setAttribute("src", src);
+        script.setAttribute("src", src + "<%- theme.cdnCtrl.cdn_version %>");
         HEAD.appendChild(script);
       });
     });
@@ -253,7 +263,7 @@
       setTimeout(function () {
         var link = document.createElement('link');
         link.rel = "stylesheet";
-        link.href = src;
+        link.href = src + "<%- theme.cdnCtrl.cdn_version %>";
         link.onload = resolve;
         document.getElementsByTagName("head")[0].appendChild(link);
       });
@@ -264,7 +274,7 @@
   volantis.import = {
     jQuery: () => {
       if (typeof jQuery == "undefined") {
-        return volantis.js("<%- theme.plugins.jquery %>")
+        return volantis.js("<%- theme.plugins.jquery %>") 
       } else {
         return new Promise(resolve => {
           resolve()
@@ -307,10 +317,9 @@
     engine: new RunItem(),
     unengine: new RunItem(),
   };
-  volantis.scroll = {
-    ...volantis.scroll,
+  volantis.scroll = Object.assign(volantis.scroll, {
     push: volantis.scroll.engine.push,
-  };
+  });
   // 滚动条距离顶部的距离
   volantis.scroll.getScrollTop = () =>{
     let scrollPos;
@@ -337,6 +346,8 @@
         // } else {
         //   console.log("向上滚动");
         // }
+        // 注销过期的unengine未滚动事件
+        volantis.scroll.unengine.list=[]
         volantis.scroll.engine.start();
       }else{
         volantis.scroll.unengine.start();
@@ -370,18 +381,30 @@
     window.scrollTo(opt);
     // 监视器
     // 监视并矫正元素滚动到指定位置 
-    // 目前用于处理 toc 部分 lazyload 引起的 cls 导致的定位失败问题
+    // 用于处理 lazyload 引起的 cls 导致的定位失败问题
+    // option.observer = false
     if (option.observer) {
-      volantis.scroll.unengine.push(()=>{
-        let me = ele.getBoundingClientRect().top
-        if(!(me >= -option.observerDic && me <= option.observerDic)){
-          volantis.scroll.to(ele, option)
-        }else{
+      setTimeout(()=>{
+        volantis.scroll.unengine.push(()=>{
+          let me = ele.getBoundingClientRect().top
+          if(!(me >= -option.observerDic && me <= option.observerDic)){
+            volantis.scroll.to(ele, option)
+          }
           volantis.scroll.unengine.remove("unengineObserver")
-        }
-      },"unengineObserver")
+        },"unengineObserver")
+      },1000)
     }
   }
   /******************************************************************************/
+  /******************************************************************************/
+  //图像加载出错时的处理
+  function errorImgAvatar(img) {
+    img.src = "<%- theme.default.avatar %>";
+    img.onerror = null;
+  }
+  function errorImgCover(img) {
+    img.src = "<%- theme.default.cover %>";
+    img.onerror = null;
+  }
   /******************************************************************************/
 </script>
