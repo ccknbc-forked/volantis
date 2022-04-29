@@ -7,7 +7,7 @@ document.addEventListener("DOMContentLoaded", function () {
     highlightKeyWords.startFromURL();
     locationHash();
     //changeTitle();
-  
+
     volantis.pjax.push(() => {
       VolantisApp.pjaxReload();
       VolantisFancyBox.init();
@@ -46,10 +46,10 @@ const locationHash = () => {
     if (target) {
       setTimeout(() => {
         if (window.location.hash.startsWith('#fn')) { // hexo-reference https://github.com/volantis-x/hexo-theme-volantis/issues/647
-          volantis.scroll.to(target, { addTop: - volantis.dom.header.offsetHeight - 5, behavior: 'instant' })
+          volantis.scroll.to(target, { addTop: - volantis.dom.header.offsetHeight - 5, behavior: 'instant', observer:true })
         } else {
           // 锚点中上半部有大片空白 高度大概是 volantis.dom.header.offsetHeight
-          volantis.scroll.to(target, { addTop: 5, behavior: 'instant' })
+          volantis.scroll.to(target, { addTop: 5, behavior: 'instant', observer:true })
         }
       }, 1000)
     }
@@ -105,15 +105,9 @@ const VolantisApp = (() => {
     }
 
     // 消息提示 复制时弹出
-    if (volantis.GLOBAL_CONFIG.plugins.message.enable
-      && volantis.GLOBAL_CONFIG.plugins.message.copyright.enable) {
-      document.body.oncopy = function () {
-        VolantisApp.message(volantis.GLOBAL_CONFIG.plugins.message.copyright.title,
-          volantis.GLOBAL_CONFIG.plugins.message.copyright.message, {
-          icon: volantis.GLOBAL_CONFIG.plugins.message.copyright.icon
-        });
-      };
-    }
+    document.body.oncopy = function () {
+      fn.messageCopyright()
+    };
   }
 
   fn.restData = () => {
@@ -214,7 +208,7 @@ const VolantisApp = (() => {
     if (!pdata.ispage) return;
 
     // 填充二级导航文章标题 【移动端 PC】
-    volantis.dom.wrapper.find('.nav-sub .title').html(pdata.postTitle);
+    volantis.dom.wrapper.find('.nav-sub .title').html(document.title.split(" - ")[0]);
 
     // ====== bind events to every btn =========
     // 评论按钮 【移动端 PC】
@@ -395,47 +389,14 @@ const VolantisApp = (() => {
     })
   }
 
-  // 设定激活/销毁自定义右键
-  window.checkRightMenu = true;
-  fn.toggleRightMenu = () => {
-    let _destroyRightContent = document.getElementById('destroyRightContent');
-    let _initRightContent = document.getElementById('initRightContent');
-
-    if (_destroyRightContent || _initRightContent) {
-      if (window.checkRightMenu) {
-        _destroyRightContent.style.display = "block";
-        _initRightContent.style.display = "none";
-      } else {
-        _initRightContent.style.display = "block";
-        _destroyRightContent.style.display = "none";
-      }
-
-      _destroyRightContent.removeEventListener('click', null);
-      _destroyRightContent.addEventListener('click', function () {
-        RightMenu.destroy(true);
-        window.checkRightMenu = false;
-        _initRightContent.style.display = "block";
-        _destroyRightContent.style.display = "none";
-      })
-
-      _initRightContent.removeEventListener('click', null);
-      _initRightContent.addEventListener('click', function () {
-        RightMenu.init(true);
-        window.checkRightMenu = true;
-        _destroyRightContent.style.display = "block";
-        _initRightContent.style.display = "none";
-      })
-    }
-  }
-
   // 评论切换
   volantis.selectComment = 'beaudar';
   fn.switchComment = () => {
     const _btn = document.getElementById('switchBtn');
     if (_btn) {
-      if(volantis.selectComment !== 'beaudar') {
+      if (volantis.selectComment !== 'beaudar') {
         _btn.classList.remove('move');
-      } 
+      }
       _btn.onclick = function () {
         const _twikoo = document.getElementById('twikoo');
         const _beaudar = document.getElementById('beaudar_container');
@@ -599,8 +560,8 @@ const VolantisApp = (() => {
   // 消息提示：标准
   fn.message = (title, message, option = {}, done = null) => {
     if (typeof iziToast === "undefined") {
-      volantis.css(volantis.GLOBAL_CONFIG.cdn.css.message)
-      volantis.js(volantis.GLOBAL_CONFIG.cdn.js.message, () => {
+      volantis.css(volantis.GLOBAL_CONFIG.plugins.message.css)
+      volantis.js(volantis.GLOBAL_CONFIG.plugins.message.js, () => {
         tozashMessage(title, message, option, done);
       });
     } else {
@@ -645,8 +606,8 @@ const VolantisApp = (() => {
   // 消息提示：询问
   fn.question = (title, message, option = {}, success = null, cancel = null, done = null) => {
     if (typeof iziToast === "undefined") {
-      volantis.css(volantis.GLOBAL_CONFIG.cdn.css.message)
-      volantis.js(volantis.GLOBAL_CONFIG.cdn.js.message, () => {
+      volantis.css(volantis.GLOBAL_CONFIG.plugins.message.css)
+      volantis.js(volantis.GLOBAL_CONFIG.plugins.message.js, () => {
         tozashQuestion(title, message, option, success, cancel, done);
       });
     } else {
@@ -706,8 +667,8 @@ const VolantisApp = (() => {
     }
 
     if (typeof iziToast === "undefined") {
-      volantis.css(volantis.GLOBAL_CONFIG.cdn.css.message)
-      volantis.js(volantis.GLOBAL_CONFIG.cdn.js.message, () => {
+      volantis.css(volantis.GLOBAL_CONFIG.plugins.message.css)
+      volantis.js(volantis.GLOBAL_CONFIG.plugins.message.js, () => {
         hideMessage(done);
       });
     } else {
@@ -721,15 +682,31 @@ const VolantisApp = (() => {
   }
 
   // 消息提示：复制
+  let messageCopyrightShow = 0;
   fn.messageCopyright = () => {
     // 消息提示 复制时弹出
     if (volantis.GLOBAL_CONFIG.plugins.message.enable
-      && volantis.GLOBAL_CONFIG.plugins.message.copyright.enable) {
+      && volantis.GLOBAL_CONFIG.plugins.message.copyright.enable
+      && messageCopyrightShow < 1) {
+      messageCopyrightShow++;
       VolantisApp.message(volantis.GLOBAL_CONFIG.plugins.message.copyright.title,
         volantis.GLOBAL_CONFIG.plugins.message.copyright.message, {
-        icon: volantis.GLOBAL_CONFIG.plugins.message.copyright.icon
+        icon: volantis.GLOBAL_CONFIG.plugins.message.copyright.icon,
+        transitionIn: 'flipInX',
+        transitionOut: 'flipOutX',
+        displayMode: 1
       });
     }
+  }
+
+  // 转换时间
+  fn.dataToShow = () => {
+    document.querySelectorAll('time.dataToShow').forEach(item => {
+      try {
+        let time = fn.utilTimeAgo(new Date(item.getAttribute('datetime'))).trim();
+        item.textContent = time ? time : item.textContent;
+      } catch (error) {}
+    })
   }
 
   return {
@@ -745,8 +722,8 @@ const VolantisApp = (() => {
       fn.setHeaderSearch();
       fn.setScrollAnchor();
       fn.setTabs();
-      fn.toggleRightMenu();
       fn.footnotes();
+      fn.dataToShow();
       // fn.switchComment();
     },
     pjaxReload: () => {
@@ -757,15 +734,16 @@ const VolantisApp = (() => {
       fn.setPageHeaderMenuEvent();
       fn.setScrollAnchor();
       fn.setTabs();
-      fn.toggleRightMenu();
       fn.footnotes();
+      fn.dataToShow();
       // fn.switchComment();
 
       // 移除小尾巴的移除
       document.querySelector("#l_header .nav-main").querySelectorAll('.list-v:not(.menu-phone)').forEach(function (e) {
         e.removeAttribute("style")
       })
-      document.querySelector("#l_header .menu-phone.list-v").removeAttribute("style")
+      document.querySelector("#l_header .menu-phone.list-v").removeAttribute("style");
+      messageCopyrightShow = 0;
     },
     utilCopyCode: fn.utilCopyCode,
     utilWriteClipText: fn.utilWriteClipText,
@@ -773,7 +751,8 @@ const VolantisApp = (() => {
     message: fn.message,
     question: fn.question,
     hideMessage: fn.hideMessage,
-    messageCopyright: fn.messageCopyright
+    messageCopyright: fn.messageCopyright,
+    scrolltoElement: fn.scrolltoElement
   }
 })()
 Object.freeze(VolantisApp);
@@ -1108,6 +1087,12 @@ const DOMController = {
     })
   },
 
+  removeList: (list) => {
+    list.forEach(param => {
+      DOMController.remove(param)
+    })
+  },
+
   /**
    * 设置属性
    */
@@ -1118,6 +1103,12 @@ const DOMController = {
     })
   },
 
+  setAttributeList: (list) => {
+    list.forEach(item => {
+      DOMController.setAttribute(item[0], item[1], item[2])
+    })
+  },
+
   /**
    * 设置样式
    */
@@ -1125,6 +1116,12 @@ const DOMController = {
     const node = document.querySelectorAll(param);
     node.forEach(ele => {
       ele.style[styleName] = styleValue;
+    })
+  },
+
+  setStyleList: (list) => {
+    list.forEach(item => {
+      DOMController.setStyle(item[0], item[1], item[2])
     })
   },
 
@@ -1156,6 +1153,12 @@ const DOMController = {
     return e
   },
 
+  fadeToggleList: (list) => {
+    list.forEach(param => {
+      DOMController.fadeToggle(param)
+    })
+  },
+
   hasClass: (e, c) => {
     if (!e) return;
     return e.className.match(new RegExp('(\\s|^)' + c + '(\\s|$)'));
@@ -1181,6 +1184,12 @@ const DOMController = {
       DOMController.addClass(e, c)
     }
     return e
+  },
+
+  toggleClassList: (list) => {
+    list.forEach(item => {
+      DOMController.toggleClass(item[0], item[1])
+    })
   }
 }
 Object.freeze(DOMController);

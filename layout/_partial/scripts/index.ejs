@@ -30,10 +30,14 @@
 <% } %>
 
 <!-- internal -->
-<%- js(theme.cdn.map.js.app) %>
+<script src="<%- theme.cdn.map.js.app %>"></script>
 
 <% if (theme.rightmenu.enable) { %>
   <%- partial('../../_plugins/rightmenu/layout') %>
+<% } %>
+
+<% if (theme.rightmenus.enable) { %>
+  <%- partial('../../_plugins/rightmenus/layout') %>
 <% } %>
 
 <!-- rightmenu要在darkmode之前（ToggleButton） darkmode要在comments之前（volantis.dark.push）-->
@@ -61,9 +65,27 @@
   <%- partial('../../_plugins/aplayer/script') %>
 <% } %>
 
-<% if (theme.comments.service && theme.comments.service.length > 0) { %>
-  <%- partial('../../_plugins/comments/' + theme.comments.service + '/script') %>
-<% } %>
+<% 
+  if (theme.comments.service && theme.comments.service.length > 0) {
+    try { %>
+      <%- partial('../../_plugins/comments/' + theme.comments.service + '/script') %>
+    <% } catch (e) {
+      // error friendly
+      console.log(`
+===============================================================================
+    没有找到评论插件：${theme.comments.service}
+    请检查是否存在该插件，或者检查插件名称是否正确：${theme.comments.service}
+    see: https://volantis.js.org/v5/theme-settings/#选择评论系统
+================================================================================
+    There is no comments plugin: ${theme.comments.service}
+    Please check if the plugin exists, or check the plugin name is correct: ${theme.comments.service}
+    see: https://volantis.js.org/v5/theme-settings/#选择评论系统
+=================================================================================`)
+    }
+  }
+%>
+
+
 
 <% if (theme.analytics.busuanzi) { %>
   <script defer src="<%- theme.analytics.busuanzi %>" data-pjax></script>
@@ -115,18 +137,14 @@
 
 <%- partial('toc') %>
 
+<%- partial('content-visibility-scroll-fix') %>
+
 <% if (theme.structured_data && theme.structured_data.enable) { %>
   <%- structured_data() %>
 <% } %>
 
 <%- partial('../szyink') %>
-
 <% if (theme.InconfontFlag) { %>
-  <%- js(theme.cdn.map.js.iconfontInkss) %>
-<% } %>
 
-<!-- more -->
-<% if (config.import && config.import.script) { %>
-  <%- partial('import') %>
+  <script src="<%- theme.cdn.map.js.iconfontInkss %>"></script>
 <% } %>
-
