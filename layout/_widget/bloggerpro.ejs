@@ -1,0 +1,27 @@
+<%- partial('_pre') %>
+  <section class="widget <%- item.class %> <%- page.widget_style %> <%- page.widget_platform %>">
+    <div class='content'>
+      <% if (item.title || item.subtitle || item.jinrishici) { %>
+        <div class='text'>
+          <div class="txt_container">
+            <!-- <p id="type"></p> -->
+            <p class="sayhi" style="text-align: left; margin-left:1rem">👋Hi!小可爱~这是</p>
+            <% if (item.title){ %>
+              <h2 style="text-align: left; margin-top:0;margin-left:1rem">
+                <%- item.title %>
+              </h2>
+              <% } %>
+                <p class="description1" style="text-align:left; margin-left: 1rem"><span id="jinrishici-sentence"><%- item.jinrishici != true ? item.jinrishici : config.title %></span></p>
+                <script src="https://sdk.jinrishici.com/v2/browser/jinrishici.js" charset="utf-8"></script>
+                <div class="contactme" style=" margin-left:1rem">
+                  <div class="icon"><a href="https://qm.qq.com/cgi-bin/qm/qr?k=TjbIk84fDNYu4UAzA4xDzRk53hkKABh_&authKey=St%2F%2B%2FHaVkOvMkzZAqWXC5jfovqmrVqIStz5FL9o2oOCxZYAVth5ywkwnShxmf8X%2B&noverify=0&group_code=660414614"><i class='fab fa-qq'></i></a></div>
+                  <div class="icon"><a href="https://github.com/qystudio0"><i class='fab fa-github'></i></a></div>
+                </div>
+                <p>
+                    
+                </p>
+          </div>
+        </div>
+      <% } %>
+    </div>
+  </section>
